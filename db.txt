@@ -1,0 +1,70 @@
+Firebase setup guide for this project
+
+Services to enable
+- Authentication: Email/Password and (optional) Google
+- Firestore Database: Start in Production mode
+
+Collections and documents
+1) users/{uid}/moods/{YYYY-MM-DD}
+   - date: string (YYYY-MM-DD)
+   - mood: number (1..5)
+   - updatedAt: serverTimestamp
+
+2) bookings (top-level collection)
+   - Fields per document:
+     - userId: string (auth uid of student)
+     - email: string (student email)
+     - date: string (YYYY-MM-DD)
+     - time: string (HH:mm)
+     - mode: string ("Online" | "In-Person")
+     - note: string
+     - status: string ("pending" | "approved" | "rejected")
+     - createdAt: serverTimestamp
+
+Firestore security rules (examples)
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Students can manage their own mood entries
+    match /users/{userId}/moods/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Students create bookings; counselor/admin can manage them
+    match /bookings/{bookingId} {
+      // Anyone authenticated can create a booking for themselves
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+
+      // Read and update permissions for counselor/admin
+      // Option A: restrict by a list of allowed admin UIDs
+      allow read, update, delete: if request.auth != null && (
+        request.auth.uid in [
+          // Add counselor/admin Firebase UIDs here
+        ]
+      );
+
+      // Students can read their own bookings
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+
+      // Prevent students from modifying status
+      allow update: if request.auth != null && (
+        // Only allow student to update their own non-admin fields (optional tightening)
+        resource.data.userId == request.auth.uid &&
+        !("status" in request.resource.data) // block status changes by students
+      );
+    }
+  }
+}
+
+Indexes
+- No composite indexes required for current queries (orderBy createdAt, optional where userId == uid).
+
+Client integration notes
+- MoodTracker: reads/writes users/{uid}/moods/{YYYY-MM-DD}
+- Booking page: addDoc to bookings with the fields above
+- Admin (Counselor) page: realtime on bookings ordered by createdAt, and update status
+
+Deployment notes
+- Ensure Firebase config in src/components/firebase.js matches your project
+- In Vercel, expose the same env config (if you move them to env vars)
+- Firestore rules must be published; otherwise you’ll see permission-denied on prod

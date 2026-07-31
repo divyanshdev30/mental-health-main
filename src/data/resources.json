@@ -1,0 +1,51 @@
+[
+  {
+    "id": "r1",
+    "type": "audio",
+    "title": "5-minute breathing exercise",
+    "category": "Stress",
+    "url": "https://www.youtube.com/watch?v=w2Mi0a5dDhc"
+  },
+  {
+    "id": "r2",
+    "type": "video",
+    "title": "Sleep hygiene basics",
+    "category": "Sleep",
+    "url": "https://www.youtube.com/watch?v=fk-_SwHhLLc"
+  },
+  {
+    "id": "r3",
+    "type": "article",
+    "title": "Study techniques that reduce anxiety",
+    "category": "Study",
+    "url": "https://www.lib.sfu.ca/about/branches-depts/slc/learning/exam-anxiety/reducing-exam-anxiety#:~:text=Spread%20your%20studying%20over%20the,for%20yourself%20after%20the%20exam."
+  },
+  {
+    "id": "r4",
+    "type": "video",
+    "title": "10-minute meditation for stress relief",
+    "category": "Stress",
+    "url": "https://www.youtube.com/watch?v=H_uc-uQ3Nkc"
+  },
+  {
+    "id": "r5",
+    "type": "audio",
+    "title": "Progressive muscle relaxation",
+    "category": "Stress",
+    "url": "https://www.youtube.com/watch?v=ihO02wUzgkc"
+  },
+  {
+    "id": "r6",
+    "type": "video",
+    "title": "Bedtime relaxation routine",
+    "category": "Sleep",
+    "url": "https://www.youtube.com/watch?v=ft-vhYwHzxw"
+  },
+  {
+    "id": "r7",
+    "type": "article",
+    "title": "Time management for students",
+    "category": "Study",
+    "url": "https://summer.harvard.edu/blog/8-time-management-tips-for-students/#1-Create-a-Calendar"
+  }
+]

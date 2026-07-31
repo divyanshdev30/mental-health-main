@@ -1,0 +1,55 @@
+Presentation Day Error Playbook
+
+Quick checklist
+- Open app root (/) and navigate through: Login → Signup → Dashboard → Booking → Forum → Admin → Counselor → Become a Counselor
+- Test localStorage flows in ONE browser profile (promotion/roles are local-only for prototype)
+- Verify Vercel build uses `npm run build` and output `dist/`; SPA rewrites enabled via vercel.json
+
+Build and install issues
+- Node/pnpm mismatch: If the Vercel build image differs from local, install fails or “Unsupported engine”. Fix: use default Vercel Node 18+; keep lockfile; avoid node-specific APIs outside browser code.
+- TypeScript/Vite SWC syntax errors: Missing/extra braces, stray returns (like “Return statement is not allowed here”), or invalid JSX. Fix by running `npm run typecheck` locally; check recent edits.
+- Path aliases not resolved: Vercel build may not respect tsconfig paths if tooling is misconfigured. Fix ensured by vite + tsconfig `paths` + moduleResolution=bundler (already set).
+
+Vercel deployment/runtime
+- SPA 404 on page refresh or deep-links: Missing SPA rewrite. Fix: vercel.json contains `{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }` (already present). Ensure Vercel uses it.
+- Wrong output dir: If Output Directory isn’t `dist`, deploy serves nothing. Fix: Set Vercel project output to `dist` or rely on framework auto-detect (Vite).
+- Env vars missing: Chatbot/AI needs VITE_OPENAI_API_KEY (client). Fix: Add in Vercel Project → Settings → Environment Variables (prefix VITE_).
+- Caching/stale assets: Browser shows outdated JS after deploy. Fix: hard refresh (Ctrl/Cmd+Shift+R) or purge cache in Vercel if needed.
+
+Authentication (Firebase)
+- Authorized domains: Email/password & Google sign-in may fail on vercel.app domain. Fix: In Firebase Console → Authentication → Settings → Authorized domains, add your Vercel domain.
+- Google OAuth redirect mismatch: “disallowed_useragent”/redirect URI mismatch. Fix: Add Vercel domain to OAuth Client ID Authorized redirect URIs.
+- Email verification delays: `sendEmailVerification` may be slow or blocked. For demo, login still proceeds, but email may not arrive immediately.
+- Password rules: Firebase may reject weak passwords. Use ≥ 6 chars.
+
+LocalStorage data model (prototype)
+- Storage unavailable: Safari Private Mode/strict privacy can throw on `localStorage`. App attempts to catch most writes, but some flows (roles/applications) require it. Demo in a normal browser profile.
+- Data isolation: Roles (ROLES_KEY) and counselor applications (dpi_counselor_apps) are stored per-browser. Promoting a counselor on Admin’s browser won’t affect another device. For demo, promote the account on the demo machine.
+- Clearing storage: If storage is cleared, promoted roles and bookings disappear. Recreate via Admin.
+
+Routing and roles
+- Admin blocked from student dashboard: Admin can’t access /dashboard (intentional). They are redirected to /admin. If a blank page appears briefly, refresh; client-side redirect handles it.
+- Counselor link missing: Appears only when logged-in user has role=counselor (from ROLES_KEY mapping). Use Admin → Promote Counselor or approve an application first, then re-login.
+- Deep links: Ensure the "Become a Counselor" button routes to /become-counselor; the dedicated page hosts the form.
+
+Booking/Forum (local-only)
+- Admin not seeing booking immediately: Admin/Counselor pages read from `dpi_bookings` in `localStorage`. Both must run on the same browser profile for live demo; otherwise there’s no cross-device sync.
+- Upcoming booking blank: Appears only after creating a booking for the logged-in user.
+
+Charts and UI
+- Recharts render glitches on resize: Can occur if container size is 0 at first render. Toggle a tab or resize to force layout; current layout mitigates this.
+- Google Fonts blocked by network policies: Fallback fonts will be used; visuals may differ slightly.
+
+Performance/network
+- Slow first load on cellular/venue Wi‑Fi: Assets load via Vercel CDN; still subject to network. Pre-open app before presenting to warm caches.
+
+Known limitations (acceptable for prototype)
+- No real-time sync between Admin/Student devices (uses localStorage).
+- Counselor roles managed locally (ROLES_KEY); no server authority yet.
+- Mood history uses sample data locally; Firestore sync disabled unless configured.
+
+Recovery steps (fast fixes on stage)
+- If navigation breaks (404 on refresh): Verify vercel.json present; reload home and navigate via in-app links.
+- If auth fails: Use a pre-created email/password on the demo domain; or demo local features without auth.
+- If roles missing: Open Admin → Promote Counselor, enter counselor email/name, then log out/in as counselor.
+- If UI stuck: Hard refresh (Ctrl/Cmd+Shift+R). If still broken, revert to last good deploy in Vercel dashboard.
